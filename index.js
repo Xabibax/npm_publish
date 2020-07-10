@@ -7,6 +7,7 @@ const fs = require('fs');
 
 const wkDir = ".tmp"
 const cd = process.cwd()
+const pubOptions = ["--silent", "--ignore-scripts", "--dry-run"];
 
 let packToPub = process.argv.slice(2);
 let listToPub = new Set();
@@ -35,11 +36,17 @@ console.log(`${listToPub.size} packages will now be downloaded.`);
 
 // download all packages
 if (`npm pack ${Array.from(listToPub).join(" ")} --quiet`.toString().length > 8000) console.warn("The number of packages may be too high.")
-let tarToPub = execSync(`npm pack ${Array.from(listToPub).join(" ")} --quiet`).toString().split('\n');     
+let tarToPub
+try {
+    tarToPub = execSync(`npm pack ${Array.from(listToPub).join(" ")} --quiet`).toString().split('\n');    
+} catch (error) {
+    console.error(`${error}`);
+    delWS();
+}
 console.log(`Downloaded packages : \n\t${tarToPub.join("\n\t")}`);
 tarToPub.forEach(tarball => {
     try {
-        execSync(`npm publish ${tarball} --silent --ignore-scripts --dry-run`);
+        execSync(`npm publish ${tarball} ${pubOptions.join(" ")}`);
         console.log(tarball, "--> published")
     } catch (error) {
         console.warn(`${error}`);
