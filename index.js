@@ -12,8 +12,21 @@ const pubOptions = ["--silent", "--ignore-scripts", "--dry-run"];
 let packToPub = process.argv.slice(2);
 let listToPub = new Set();
 
-prepWS();
-
+let  prepWS = (() => {
+    if (!fs.existsSync(wkDir)) {
+        fs.mkdirSync(wkDir, true);
+    }
+    process.chdir(wkDir);
+})();
+let  delWS = () =>  {
+    try {
+        process.chdir(cd);
+    }
+    catch (err) {
+        console.log('chdir: ' + err);
+    }
+    delFoldRec(wkDir)
+};
 packToPub.forEach(pack => listToPub.add(pack));
 try {
     // list all packages dependencies
@@ -27,7 +40,7 @@ try {
         }
     });
 } catch (error) {
-    console.error(error)
+    console.error(`${error}`)
     delWS();
     exit(1);
 }
@@ -58,21 +71,8 @@ if (tarToPub.length > 0) console.log("List of all publish packages :", tarToPub)
 else console.log("No package published")
 delWS()
 
-function prepWS() {
-    if (!fs.existsSync(wkDir)) {
-        fs.mkdirSync(wkDir, true);
-    }
-    process.chdir(wkDir);
-}
-function delWS() {
-    try {
-        process.chdir(cd);
-    }
-    catch (err) {
-        console.log('chdir: ' + err);
-    }
-    delFoldRec(wkDir)
-}
+
+
 
 // Found at : https://geedew.com/remove-a-directory-that-is-not-empty-in-nodejs/
 function delFoldRec(path) {
